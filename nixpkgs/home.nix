@@ -20,6 +20,7 @@
 
     # programming
     git
+    emacs
     python
     ruby
     ghc
@@ -43,14 +44,6 @@
     transmission-gtk
   ];
 
-  programs.emacs = {
-    enable = true;
-    extraPackages = epkgs: [
-      epkgs.nix-mode
-      epkgs.magit
-    ];
-  };
-
   programs.home-manager = {
     enable = true;
     path = "...";
@@ -73,5 +66,10 @@
   
   home.file.".gitconfig".source = config/.gitconfig;
 
+  # link to a mutable file by inclusion
+  home.file.".emacs.d/init.el".text = ''
+    (setq custom-file "${toString config/custom.el}")
+    (load custom-file)
+  '';
 
 }
