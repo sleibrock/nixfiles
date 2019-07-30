@@ -1,6 +1,4 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
+# The Stove NixOS configuration file
 
 { config, pkgs, ... }:
 
@@ -10,29 +8,27 @@
       ./hardware-configuration.nix
     ];
 
-  boot.loader.systemd-boot.enable = true;
-  # EFI
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.efi.efiSysMountPoint = "/boot/efi";
+  # Set Grub2 loader with UEFI
+  # TODO: split this between different host device configs
+  boot.loader.grub.enable = true;
+  boot.loader.grub.version = 2;
+  boot.loader.grub.efiSupport = true;
+  boot.loader.grub.efiInstallAsRemovable = true;
+  boot.loader.efi.efiSysMountPoint = "/boot";
+  # Define on which hard drive you want to install Grub.
+  # boot.loader.grub.device = "/dev/sda"; # or "nodev" for efi only
+  boot.loader.grub.device = "nodev";
 
-  # GRUB2 setup
-  boot.loader.grub = {
-    enable = true;
-    version = 2;
-    device = "nodev";
-    efiSupport = true;
-    # efiInstallAsRemovable = true; # in case canTouch doesn't work
-    # forceInstall = false;
-  };
-
-  networking.hostName = "stove-desktop"; # Define your hostname.
-  networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+  # Network hostname and wifi
+  # TODO: split this between different devices
+  networking.hostName = "stove-desktop";
+  networking.wireless.enable = true;
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
-  # Select internationalisation properties.
+  # Font for internationalisation
   i18n = {
     consoleFont = "Fira Code";
     consoleKeyMap = "us";
@@ -54,19 +50,86 @@
   # Set your time zone.
   time.timeZone = "America/New_York";
 
+  # Enable non-free packages
+  nixpkgs.config.allowUnfree = true;
+
+  # Enable broken packages
+  # Should be removed as soon as possible
+  # or limited to the scope of purely Steam
+  # nixpkgs.config.allowBroken = true;
+
+  # Enable 32-bit support (required for Steam)
+  hardware.opengl.driSupport32Bit = true;
+  hardware.pulseaudio.support32Bit = true;
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    home-manager
+    # desktop stuffs
+    firefox
+    keybase
+    keybase-gui
+    kbfs
+    alacritty
+    blender
+    dmenu
 
-    # common system tools
-    htop
-    libnotify
-    wget
+    # utilities
     curl
-    openvpn
-    fish
+    wget 
+    vim
+    emacs
+    git
+    htop
     zsh
+    arandr
+    xclip
+    scrot
+    screenfetch
+    feh
+    zip
+    unzip
+    ffmpeg
+    pcmanfm
+    #xev
+
+    # programming
+    gcc      # c/c++
+    gnumake  # make
+    rustup   # rustc/cargo
+    ghc      # haskell
+    python
+    ruby
+    #go #where is golang?
+    racket
+    guile
+    #common-lisp #where is common lisp?
+    fsharp   # F#
+    #csharp # where is C#?
+    ocaml
+    arduino  # Arduino IDE
+    elixir
+    
+    # audio
+    pavucontrol
+    pulseaudio-ctl
+    picard
+    mp3gain
+    sonic-pi
+    supercollider
+    puredata
+    jack2
+    qjackctl
+
+    # fun
+    openttd
+    runelite
+    steam
+    gzdoom
+
+    # experimental for steam native libs
+    # broken; don't touch
+    #(steam.override { extraPkgs = pkgs: [ mono gtk3 gtk3-x11 libgdiplus zlib libffi pcre ]; nativeOnly = true; })
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -79,7 +142,12 @@
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
 
+  # enable Keybase
+  services.keybase.enable = true;
+  services.kbfs.enable = true;
+
   # Open ports in the firewall.
+  # Configure this for game servers if need be
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
@@ -100,31 +168,26 @@
   # Enable touchpad support.
   # services.xserver.libinput.enable = true;
 
-  # Enable the KDE Desktop Environment.
-  #services.xserver.displayManager.lightdm.enable = true; #lightdm
+  # Configure our xserver with sddm/i3-wm 
   services.xserver.displayManager.sddm.enable = true;
-  #services.xserver.desktopManager.plasma5.enable = true; #kde/plasma
-  services.xserver.desktopManager.xfce.enable = true; #xfce4
+  services.xserver.windowManager.i3.enable = true;
 
-  services.dbus.packages = with pkgs; [ gnome3.dconf ];
+  # Docker/Flatpak stuff
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.steve = {
-    isNormalUser = true;
-    description = "Steven Leibrock";
-    shell = pkgs.fish;
-    extraGroups = ["wheel" "sudoers" "audio" "video" "disk" "networkmanager" "lxd" "adbusers"];
-    uid = 1000;
+     uid = 1000;
+     description = "Steven Leibrock";
+     shell = pkgs.zsh;
+     isNormalUser = true;
+     extraGroups = [ "wheel" "audio" "video" "lock" "uucp" "docker" ]; # Enable ‘sudo’ for the user.
   };
 
 
-  # android stuff
+  # enable ADB
   programs.adb.enable = true;
 
-  # This value determines the NixOS release with which your system is to be
-  # compatible, in order to avoid breaking some software such as database
-  # servers. You should change this only after NixOS release notes say you
-  # should.
-  system.stateVersion = "19.03"; # Did you read the comment?
+  # NixOS system version, only update when NixOS tells you to
+  system.stateVersion = "19.03";
 
 }
