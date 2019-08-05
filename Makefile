@@ -20,7 +20,7 @@ boot: test
 
 setup:
 	cp configs/.emacs $(home)
-	cp configs/.i3config $(home)/.config/i3/config
+#	cp configs/.i3config $(home)/.config/i3/config
 	cp configs/.zshrc $(home)
 	cp configs/.gitconfig $(home)
 

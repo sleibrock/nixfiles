@@ -40,7 +40,9 @@
 	racket-mode
 	tuareg     ; ocaml
 	ocp-indent ; ocaml indentation plugin
-	nim-mode
+	nim-mode   ; nim-lang
+	nix-mode   ; Nix/NixOS mode
+	tidal      ; tidal cycles
 	))
 
 

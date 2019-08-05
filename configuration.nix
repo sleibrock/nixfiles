@@ -14,7 +14,7 @@
   boot.loader.grub.version = 2;
   boot.loader.grub.efiSupport = true;
   boot.loader.grub.efiInstallAsRemovable = true;
-  boot.loader.efi.efiSysMountPoint = "/boot";
+  boot.loader.efi.efiSysMountPoint = "/boot/efi";
   # Define on which hard drive you want to install Grub.
   # boot.loader.grub.device = "/dev/sda"; # or "nodev" for efi only
   boot.loader.grub.device = "nodev";
@@ -73,6 +73,8 @@
     alacritty
     blender
     dmenu
+    arc-theme
+    transmission-gtk
 
     # utilities
     curl
@@ -110,7 +112,8 @@
     arduino  # Arduino IDE
     elixir
     
-    # audio
+    # audio / media production
+    obs-studio
     pavucontrol
     pulseaudio-ctl
     picard
@@ -170,7 +173,8 @@
 
   # Configure our xserver with sddm/i3-wm 
   services.xserver.displayManager.sddm.enable = true;
-  services.xserver.windowManager.i3.enable = true;
+#  services.xserver.windowManager.i3.enable = true;
+  services.xserver.desktopManager.xfce.enable = true;
 
   # Docker/Flatpak stuff
 
