@@ -75,6 +75,7 @@
     dmenu
     arc-theme
     transmission-gtk
+    plasma-workspace-wallpapers
 
     # utilities
     curl
@@ -100,6 +101,7 @@
     gnumake  # make
     rustup   # rustc/cargo
     ghc      # haskell
+    cabal-install
     python
     ruby
     #go #where is golang?
@@ -114,6 +116,7 @@
     
     # audio / media production
     obs-studio
+    simplescreenrecorder
     pavucontrol
     pulseaudio-ctl
     picard
