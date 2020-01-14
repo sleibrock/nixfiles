@@ -14,14 +14,16 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "stovedesk"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+  # Define our network configuration (use networkmanager for wireless)
+  networking.hostName = "alienix"; # Define your hostname.
+  networking.networkmanager.enable = true;
 
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviour.
   networking.useDHCP = false;
-  networking.interfaces.enp5s0.useDHCP = true;
+  networking.interfaces.enp3s0.useDHCP = true;
+  networking.interfaces.wlp4s0.useDHCP = true;
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -37,32 +39,31 @@
   # Set your time zone.
   time.timeZone = "America/New_York";
 
+  # enable non-free packages for Steam to work
+  # and other such things
   nixpkgs.config.allowUnfree = true;
-
-  # use latest linux packages
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.kernelModules = ["uinput"];
-
-
-  # Configurations to make steam/unfree games work
-  #nixpkgs.config.allowUnfree = true;
   hardware.opengl.driSupport32Bit = true;
   hardware.opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
   hardware.pulseaudio.support32Bit = true;
+  # nvidia/intel only
+  services.xserver.videoDrivers = [ "intel" "nvidia" ];
+  hardware.bumblebee.connectDisplay = true;
+  hardware.bumblebee.driver = "nvidia";
+
+
+  # kernel modifications
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelModules = ["uinput"];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     firefox
-    alacritty
-    dmenu
-    transmission-gtk
+    chromium
     pavucontrol
-    mpv
-
-    htop
-    discord
-
+    transmission-gtk
+    vlc
+    gotop
     curl
     wget
     vim
@@ -72,36 +73,31 @@
     scrot
     screenfetch
     feh
+    arc-theme
+    plasma-workspace-wallpapers
     zip
     unzip
     ffmpeg
     pcmanfm
     viewnior
-    ldm
     gimp
-
+    afuse
     gcc
     gnumake
-    rustup
-    ghc
-    go
     python
-    racket
-
-    # net tools
     whois
-    traceroute
-    geoip
-    bind       # various dnsutils
-    netcat-gnu # 
-    ncat
-    thc-hydra  # cracker
-    john       # ripper
-
-    # games section
-    # check that the unfree section has been unmarked
-    runelite
+   
+    # and of course
     steam
+    #(steam.override { 
+    #  withPrimus = true;
+    #  extraPkgs = pkgs: [ bumblebee glxinfo ]; nativeOnly = true; 
+    #})
+
+    # other utilities
+    snes9x-gtk # snes emu
+    zsnes      # og snes emu
+    epsxe
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -110,9 +106,27 @@
   # programs.gnupg.agent = { enable = true; enableSSHSupport = true; };
 
   # List services that you want to enable:
+  # automount services
+  services.udisks2.enable = true;
+  services.gvfs.enable = true;
+  services.devmon.enable = true;
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
+
+
+  # udev additional rules for controllers/guitars/etc
+  services.udev.extraRules = ''
+    SUBSYSTEM=="usb", ATTRS{idVendor}=="28de", MODE="0666"
+    KERNEL=="hidraw*", ATTRS{idVendor}=="28de", MODE="0666"
+    KERNEL=="hidraw*", KERNELS=="*28DE:*", MODE="0666"
+    KERNEL=="uinput", MODE="0660", GROUP="users", OPTIONS+="static_node=uinput"
+    KERNEL=="hidraw*", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="05c4", MODE="0660"
+    KERNEL=="hidraw*", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="0ba0", MODE="0666"
+    KERNEL=="hidraw*", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="09cc", MODE="0666",
+    KERNEL=="hidraw*", KERNELS=="*054C:05C4*", MODE="0666"
+    KERNEL=="hidraw*", KERNELS=="*054C:09CC*", MODE="0666"
+  '';
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
@@ -130,26 +144,30 @@
   # Enable the X11 windowing system.
   services.xserver.enable = true;
   services.xserver.layout = "us";
-  # services.xserver.xkbOptions = "eurosign:e";
+  #services.xserver.xkbOptions = "eurosign:e";
 
   # Enable touchpad support.
-  # services.xserver.libinput.enable = true;
+  services.xserver.libinput.enable = true;
 
-  # Enable the KDE Desktop Environment.
+  # Enable the xfce4 environment with sddm autologin 
+  services.xserver.desktopManager.xfce.enable = true;
+  services.xserver.displayManager.sddm = {
+    enable = true;
+    autoLogin = {
+      enable = true;
+      user = "steve";
+    };
+  };
   # services.xserver.desktopManager.plasma5.enable = true;
-  services.xserver.displayManager.sddm.enable = true;
-  services.xserver.windowManager.i3.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.steve = {
-    uid = 1000;
+    uid = 1001;
     description = "Steven Leibrock";
     shell = pkgs.zsh;
     isNormalUser = true;
-    extraGroups = [ "wheel" "audio" "video" "lock" "uucp" "networkmanager" "docker" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "wheel" "audio" "video" "lock" "uucp" "networkmanager" "docker"]; # Enable ‘sudo’ for the user.
   };
-
-  programs.adb.enable = true;
 
   # This value determines the NixOS release with which your system is to be
   # compatible, in order to avoid breaking some software such as database

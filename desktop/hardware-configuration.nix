@@ -13,20 +13,19 @@
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
-  fileSystems."/" = { 
-    label = "nixos";
-    #device = "/dev/disk/by-uuid/a1c5ff64-ef46-4461-9abf-f7e75f949f11";
-    fsType = "ext4";
-  };
+  fileSystems."/" =
+    { device = "/dev/disk/by-uuid/904ad4d3-50db-4a65-a8d7-4074c9e62fba";
+      fsType = "ext4";
+    };
 
-  fileSystems."/boot/efi" = {
-    label = "boot";
-    fsType = "vfat"; 
-  };
+  fileSystems."/boot" =
+    { device = "/dev/disk/by-uuid/ACC5-4D90";
+      fsType = "vfat";
+    };
 
-  swapDevices = [
-    { label = "swap"; }
-  ];
+  swapDevices =
+    [ { device = "/dev/disk/by-uuid/dd9304cc-4bf8-471f-9fd0-acb9817a1486"; }
+    ];
 
   nix.maxJobs = lib.mkDefault 8;
 }
